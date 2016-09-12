@@ -56,17 +56,4 @@ public class Util {
                 Arrays.asList(content),
                 StandardCharsets.UTF_8);
     }
-
-    public static int getInterger(String str){
-        return Integer.valueOf(str);
-    }
-
-    public static double getInteger(ArrayList<Double> list){
-        return list.stream().map(x -> x*x).findFirst().get();
-    }
-
-    public static int init(double x, String y){
-        return (int)Math.round(Double.valueOf(y) + x);
-
-    }
 }
