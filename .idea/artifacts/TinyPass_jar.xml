@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="TinyPass:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/TinyPass_jar</output-path>
+    <root id="archive" name="TinyPass.jar">
+      <element id="module-output" name="TinyPass" />
+    </root>
+  </artifact>
+</component>
