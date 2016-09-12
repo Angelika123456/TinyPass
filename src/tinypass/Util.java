@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Function;
+import org.w3c.dom.*;
 
 public class Util {
 
@@ -55,5 +56,11 @@ public class Util {
         Files.write(Paths.get(fileName),
                 Arrays.asList(content),
                 StandardCharsets.UTF_8);
+    }
+
+    public static void appendChild(Node parent, Node... newChild) throws DOMException{
+        for (Node i: newChild) {
+            parent.appendChild(i);
+        }
     }
 }

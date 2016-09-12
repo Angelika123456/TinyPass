@@ -1,9 +1,7 @@
 package tinypass;
 
 import org.w3c.dom.*;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.util.*;
-import javax.crypto.SecretKey;
 import javax.xml.parsers.*;
 import java.io.*;
 import javax.xml.transform.*;
@@ -63,6 +61,19 @@ public class Cli {
             DocumentBuilderFactory.newInstance().newDocumentBuilder());
     }
 
+    /**
+     * Creates and returns a new password database. The structure is like:
+     * <root>
+     *     <masterPassword>
+     *         <salt></salt>
+     *         <hash></hash>
+     *     </masterPassword>
+     *
+     *     <data>
+     *
+     *     </data>
+     * </root>
+     */
     private static Document getNewDoc() throws Exception{
         Document doc = getDocBuilder().newDocument();
         Element root = doc.createElement("root");
@@ -79,6 +90,9 @@ public class Cli {
         return doc;
     }
 
+    /**
+     * Read the previously saved password database. Returns null if failed.
+     */
     private static Document readDoc(){
         File inputFile = new File(fileName);
 
@@ -101,6 +115,9 @@ public class Cli {
         return sw.toString();
     }
 
+    /**
+     * Add an password entry to the existing database.
+     */
     public static void addEntry(){
         char[] masterPassword = checkPassword();
         if(masterPassword == null) return;
@@ -113,14 +130,36 @@ public class Cli {
         char[] password = console().readPassword();
 
         try {
-            SecretKey key = Encryption.getKey(masterPassword);
-            EncryptResult desResult = Encryption.encrypt(key, description);
-            EncryptResult passResult = Encryption.encrypt(key, password.toString());
+            EncryptResult desResult = Encryption.encrypt(password, description);
+            EncryptResult passResult = Encryption.encrypt(password, password.toString());
 
-            Element desNode = convertToElem()
+            Document doc = addNodeEntry(desResult, passResult, name);
+
+
+
         } catch (Exception ex){
             out.println("Failed to add entry to database.");
         }
+    }
+
+    /**
+     * Reads the password database from file, and add a password entry to the parsed document.
+     */
+    private static Document addNodeEntry(EncryptResult desResult,
+                                         EncryptResult passResult,
+                                         String name){
+        Document doc = readDoc();
+        Element dataNode = (Element)doc.getDocumentElement().getElementsByTagName("data").item(0);
+        Element elem = doc.createElement("item");
+
+        Element desNode = convertToElem(doc, desResult, "description");
+        Element passNode = convertToElem(doc, passResult, "password");
+        Element nameNode = doc.createElement("name");
+        nameNode.setNodeValue(name);
+
+        appendChild(elem, desNode, passNode, nameNode);
+        dataNode.appendChild(elem);
+        return doc;
     }
 
     private static Element convertToElem(Document doc, EncryptResult item, String name){
@@ -129,10 +168,14 @@ public class Cli {
         Element iv = doc.createElement("iv");
         iv.setNodeValue(toStringBase64(item.iv));
 
+        Element salt = doc.createElement("salt");
+        iv.setNodeValue(toStringBase64(item.salt));
+
         Element cipherText = doc.createElement("cipherText");
         cipherText.setNodeValue(toStringBase64(item.ciphertext));
 
         e.appendChild(iv);
+        e.appendChild(salt);
         e.appendChild(cipherText);
         return e;
     }
