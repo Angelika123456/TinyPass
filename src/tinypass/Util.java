@@ -3,6 +3,7 @@ package tinypass;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Function;
@@ -56,6 +57,8 @@ public class Util {
     }
 
     public static void writeToFile(String fileName, String content) throws IOException{
-        Files.write(Paths.get(fileName), Arrays.asList(content), UTF_8);
+        Path path = Paths.get(fileName);
+        if(!Files.exists(path)) Files.createFile(path);
+        Files.write(path, Arrays.asList(content), UTF_8);
     }
 }

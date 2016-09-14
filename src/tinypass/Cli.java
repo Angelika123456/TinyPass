@@ -13,6 +13,8 @@ import static java.nio.charset.StandardCharsets.*;
 
 public class Cli {
     private static final String fileName = "database";
+    private static final String fileWriteErrorMsg =
+        "An error occurred when writing to password database.";
 
     public static void init() {
         File f = new File(fileName);
@@ -36,24 +38,27 @@ public class Cli {
         Arrays.fill(password, '\0');
         Arrays.fill(passwordVerify, '\0');
 
-        saveDatabase(toStringBase64(salt) + "|" + toStringBase64(hash));
+        try {
+            writeToFile(fileName, toStringBase64(salt) + "|" + toStringBase64(hash));
+        } catch (IOException e) {
+            out.println(fileWriteErrorMsg);
+        }
     }
 
     private static void saveDatabase(String content) {
         String tmpFile = fileName + "_backup";
-        String msg = "An error occurred when writing to password database.";
 
         try {
             Files.move(Paths.get(fileName), Paths.get(tmpFile));
         } catch (IOException e) {
-            out.println(msg);
+            out.println(fileWriteErrorMsg);
             return;
         }
 
         try {
             writeToFile(fileName, content);
         } catch (IOException e) {
-            out.println(msg + " Please rename the file" + tmpFile + " to " +
+            out.println(fileWriteErrorMsg + " Please rename the file" + tmpFile + " to " +
                     fileName + " to restore database.");
         }
     }
