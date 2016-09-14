@@ -120,7 +120,9 @@ public class Cli {
      * entered correctly. Otherwise returns null.
      */
     private static char[] checkPassword() {
-        String[] passInfo = readData().get(0).split("|");
+        List<String> data = readData();
+        if(data == null) return null;
+        String[] passInfo = data.get(0).split("|");
 
         byte[] salt = passInfo[0].getBytes(UTF_8);
         byte[] hash = passInfo[1].getBytes(UTF_8);

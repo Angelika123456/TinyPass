@@ -58,8 +58,4 @@ public class Util {
     public static void writeToFile(String fileName, String content) throws IOException{
         Files.write(Paths.get(fileName), Arrays.asList(content), UTF_8);
     }
-
-    public static void appendChild(Node parent, Node... newChild) throws DOMException{
-        for (Node i: newChild) parent.appendChild(i);
-    }
 }
