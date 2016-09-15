@@ -1,18 +1,26 @@
 package tinypass;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.io.*;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.System.console;
 import static java.lang.System.out;
 import static tinypass.Util.*;
 
 import tinypass.Encryption.*;
+
+import javax.crypto.SecretKey;
 
 import static java.nio.charset.StandardCharsets.*;
 
@@ -76,7 +84,7 @@ public class Cli {
     /**
      * Read the lines of previously saved password database.
      * Returns null if failed.
-     *
+     * <p>
      * The first line is: masterPasswordSalt|masterPasswordHash
      * Other lines are: name|desSalt|desIv|desCipherTxt|passSalt|passIv|passCipherTxt
      */
@@ -100,7 +108,7 @@ public class Cli {
         out.print("Enter a unique name: ");
         String name = console().readLine();
 
-        while(NameExists(data, name)){
+        while (nameExists(data, name)) {
             out.print("Name already exists. Enter another one: ");
             name = console().readLine();
         }
@@ -124,13 +132,20 @@ public class Cli {
         out.println("Entry is added.");
     }
 
-    private static boolean NameExists(List<String> data, String name) {
+    private static Map<String, String> nameLookup(List<String> data) {
         return data
             .stream()
             .skip(1)
-            .map(s -> s.split(Pattern.quote("|"))[0])
-            .map(n -> new String(decodeBase64(n), UTF_8))
-            .anyMatch(n -> n.equals(name));
+            .collect(Collectors.toMap(
+                s -> {
+                    String name = s.split(Pattern.quote("|"))[0];
+                    return new String(decodeBase64(name), UTF_8);
+                },
+                s -> s));
+    }
+
+    private static boolean nameExists(List<String> data, String name) {
+        return nameLookup(data).containsKey(name);
     }
 
     /**
@@ -138,7 +153,7 @@ public class Cli {
      * Returns the lines of document.
      */
     private static void addEntry(List<String> data, EncryptResult desResult,
-         EncryptResult passResult, String name) {
+                                 EncryptResult passResult, String name) {
         String line = String.join("|",
             toStringBase64(name), convertToString(desResult), convertToString(passResult));
         data.add(line);
@@ -147,6 +162,63 @@ public class Cli {
     private static String convertToString(EncryptResult r) {
         return String.join("|",
             toStringBase64(r.salt), toStringBase64(r.iv), toStringBase64(r.ciphertext));
+    }
+
+    public static void getEntry(boolean showDescription) {
+        char[] masterPassword = checkPassword();
+        if (masterPassword == null) return;
+
+        List<String> rawData = readData();
+        if (rawData == null) return;
+        Map<String, String> data = nameLookup(rawData);
+        out.print("Enter the unique name: ");
+        String name = console().readLine();
+
+        while (!data.containsKey(name)) {
+            out.print("Name does not exist. Please enter again: ");
+            name = console().readLine();
+        }
+
+        String[] split = data.get(name).split(Pattern.quote("|"));
+        byte[][] items = Stream.of(split).map(s -> decodeBase64(s)).toArray(byte[][]::new);
+        String des, pass;
+
+        try {
+            SecretKey desKey = Encryption.getKey(masterPassword, items[1]);
+            des = Encryption.decrypt(desKey, items[2], items[3]);
+            SecretKey passKey = Encryption.getKey(masterPassword, items[4]);
+            pass = Encryption.decrypt(passKey, items[5], items[6]);
+        } catch (Exception e) {
+            out.println("Failed to decrypt the entry.");
+            e.printStackTrace();//TODO:
+            return;
+        } finally {
+            Arrays.fill(masterPassword, '\0');
+        }
+
+        if (showDescription) out.println("Description: " + des);
+        copyToClipboard(pass);
+    }
+
+    /**
+     * Copy the text to clipboard and clear it after 15 seconds.
+     */
+    private static void copyToClipboard(String text) {
+        StringSelection selection = new StringSelection(text);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(selection, selection);
+
+        StringSelection empty = new StringSelection("");
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+                           @Override
+                           public void run() {
+                               clipboard.setContents(empty, empty);
+                               timer.cancel();
+                           }
+                       },
+            15000,
+            Long.MAX_VALUE);
     }
 
     /**
@@ -165,13 +237,8 @@ public class Cli {
         char[] password = console().readPassword();
         byte[] enteredHash = Encryption.getHash(password, salt);
 
-
         if (Arrays.equals(hash, enteredHash)) return password;
         out.println("The master password is incorrect");
         return null;
-    }
-
-    public static void newEntry() {
-
     }
 }

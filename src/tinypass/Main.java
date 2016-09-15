@@ -27,9 +27,13 @@ public class Main {
                 init();
             }else if(args[0].equals("add")){
                 addEntry();
+            }else if(args[0].equals("get")){
+                getEntry(false);
             }
         } else if (len == 2) {
-
+            if(args[0].equals("get") && args[1].equals("-d")){
+                getEntry(true);
+            }
         }
     }
 
