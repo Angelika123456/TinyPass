@@ -1,27 +1,20 @@
 package tinypass;
 
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.lang.reflect.Array;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.awt.datatransfer.*;
+import java.nio.file.*;
 import java.util.*;
 import java.io.*;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import tinypass.Encryption.*;
+import javax.crypto.SecretKey;
 
 import static java.lang.System.console;
 import static java.lang.System.out;
 import static tinypass.Util.*;
-
-import tinypass.Encryption.*;
-
-import javax.crypto.SecretKey;
-
 import static java.nio.charset.StandardCharsets.*;
 
 public class Cli {
@@ -52,6 +45,10 @@ public class Cli {
         out.println("Succesfully initalized the password database.");
     }
 
+    /**
+     * Prompt the user to enter and verify the password.
+     * Returns the password if they match, otherwise returns null.
+     */
     private static char[] setPassword(boolean isMasterPassword){
         String msg = isMasterPassword ? "master password" : "password";
         out.print("Enter the " + msg + ": ");
@@ -82,13 +79,16 @@ public class Cli {
         } catch (IOException e) {
             out.println(fileWriteErrorMsg + " Please rename the file" + tmpFile + " to " +
                 fileName + " to restore database.");
+            return;
         }
+
+        out.println("Entry is added.");
     }
 
     /**
      * Read the lines of previously saved password database.
      * Returns null if failed.
-     * <p>
+     *
      * The first line is: masterPasswordSalt|masterPasswordHash
      * Other lines are: name|desSalt|desIv|desCipherTxt|passSalt|passIv|passCipherTxt
      */
@@ -121,23 +121,19 @@ public class Cli {
         String description = console().readLine();
 
         char[] password = null;
-
-        while(password == null){
-            password = setPassword(false);
-        }
+        while(password == null) password = setPassword(false);
 
         try {
             EncryptResult desResult = Encryption.encrypt(masterPassword, description);
             EncryptResult passResult = Encryption.encrypt(masterPassword, new String(password));
 
             addEntry(data, desResult, passResult, name);
-            saveDatabase(String.join("\n", data));
         } catch (Exception ex) {
             out.println("Failed to encrypt the entry.");
             return;
         }
 
-        out.println("Entry is added.");
+        saveDatabase(String.join("\n", data));
     }
 
     private static Map<String, String> nameLookup(List<String> data) {
@@ -171,6 +167,21 @@ public class Cli {
             toStringBase64(r.salt), toStringBase64(r.iv), toStringBase64(r.ciphertext));
     }
 
+    /**
+     * Asks the user to enter a valid unique name.
+     */
+    private static String getName(Map<String, String> entries){
+        out.print("Enter the unique name: ");
+        String name = console().readLine();
+
+        while (!entries.containsKey(name)) {
+            out.print("Name does not exist. Please enter again: ");
+            name = console().readLine();
+        }
+
+        return name;
+    }
+
     public static void getEntry(boolean showDescription) {
         char[] masterPassword = checkPassword();
         if (masterPassword == null) return;
@@ -178,13 +189,7 @@ public class Cli {
         List<String> rawData = readData();
         if (rawData == null) return;
         Map<String, String> data = nameLookup(rawData);
-        out.print("Enter the unique name: ");
-        String name = console().readLine();
-
-        while (!data.containsKey(name)) {
-            out.print("Name does not exist. Please enter again: ");
-            name = console().readLine();
-        }
+        String name = getName(data);
 
         String[] split = data.get(name).split(Pattern.quote("|"));
         byte[][] items = Stream.of(split).map(s -> decodeBase64(s)).toArray(byte[][]::new);
@@ -247,5 +252,21 @@ public class Cli {
         if (Arrays.equals(hash, enteredHash)) return password;
         out.println("The master password is incorrect");
         return null;
+    }
+
+    public static void removeEntry(){
+        char[] masterPassword = checkPassword();
+        if (masterPassword == null) return;
+
+        List<String> rawData = readData();
+        if (rawData == null) return;
+        Map<String, String> data = nameLookup(rawData);
+        String name = getName(data);
+
+        data.remove(name);
+        List<String> contents = new ArrayList<>();
+        contents.add(rawData.get(0));
+        contents.addAll(data.values());
+        saveDatabase(String.join("\n",contents));
     }
 }

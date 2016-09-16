@@ -1,13 +1,9 @@
 package tinypass;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
 import java.util.function.Function;
-import org.w3c.dom.*;
 import static java.nio.charset.StandardCharsets.*;
 
 public class Util {
@@ -48,13 +44,9 @@ public class Util {
         public ExceptionWrapper(Exception ex){ super(ex); }
     }
 
-    public static String toStringBase64(String s){
-        return toStringBase64(s.getBytes(UTF_8));
-    }
+    public static String toStringBase64(String s){ return toStringBase64(s.getBytes(UTF_8)); }
 
-    public static String toStringBase64(byte[] b){
-        return Base64.getEncoder().encodeToString(b);
-    }
+    public static String toStringBase64(byte[] b){ return Base64.getEncoder().encodeToString(b); }
 
     public static byte[] decodeBase64(String s) { return Base64.getDecoder().decode(s); }
 

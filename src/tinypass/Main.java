@@ -29,6 +29,8 @@ public class Main {
                 addEntry();
             }else if(args[0].equals("get")){
                 getEntry(false);
+            }else if(args[0].equals("rm")){
+                removeEntry();
             }
         } else if (len == 2) {
             if(args[0].equals("get") && args[1].equals("-d")){

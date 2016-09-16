@@ -1,10 +1,8 @@
 package tinypass;
 
 import java.security.*;
-import java.security.spec.KeySpec;
 import javax.crypto.*;
 import javax.crypto.spec.*;
-import static tinypass.Util.*;
 import static java.nio.charset.StandardCharsets.*;
 
 public class Encryption {
