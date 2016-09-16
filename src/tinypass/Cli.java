@@ -36,20 +36,11 @@ public class Cli {
             return;
         }
 
-        out.print("Enter the master password: ");
-        char[] password = console().readPassword();
-        out.print("Verify the master password: ");
-        char[] passwordVerify = console().readPassword();
-
-        if (!Arrays.equals(password, passwordVerify)) {
-            out.println("The passwords do not match.");
-            return;
-        }
+        char[] password = setPassword(true);
+        if(password == null) return;
 
         byte[] salt = Encryption.getSalt();
         byte[] hash = Encryption.getHash(password, salt);
-        Arrays.fill(password, '\0');
-        Arrays.fill(passwordVerify, '\0');
 
         try {
             writeToFile(fileName, toStringBase64(salt) + "|" + toStringBase64(hash));
@@ -59,6 +50,19 @@ public class Cli {
         }
 
         out.println("Succesfully initalized the password database.");
+    }
+
+    private static char[] setPassword(boolean isMasterPassword){
+        String msg = isMasterPassword ? "master password" : "password";
+        out.print("Enter the " + msg + ": ");
+        char[] password = console().readPassword();
+        out.print("Verify the " + msg + ": ");
+        char[] passwordVerify = console().readPassword();
+
+        if (Arrays.equals(password, passwordVerify)) return password;
+
+        out.println("The passwords do not match.");
+        return null;
     }
 
     private static void saveDatabase(String content) {
@@ -115,8 +119,12 @@ public class Cli {
 
         out.print("Enter description: ");
         String description = console().readLine();
-        out.print("Enter the password: ");
-        char[] password = console().readPassword();
+
+        char[] password = null;
+
+        while(password == null){
+            password = setPassword(false);
+        }
 
         try {
             EncryptResult desResult = Encryption.encrypt(masterPassword, description);
