@@ -3,7 +3,6 @@ package tinypass;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
-import java.util.function.Function;
 import static java.nio.charset.StandardCharsets.*;
 
 public class Util {
@@ -13,27 +12,9 @@ public class Util {
         T get() throws Exception;
     }
 
-    public static void unchecked(Runnable action){
-        try {
-            action.run();
-        }
-        catch (Exception ex){
-            throw new Util().new ExceptionWrapper(ex);
-        }
-    }
-
     public static <T> T unchecked(SupplierHelper<T> supplier){
         try {
             return supplier.get();
-        }
-        catch (Exception ex){
-            throw new Util().new ExceptionWrapper(ex);
-        }
-    }
-
-    public static <T, R> R unchecked(Function<T, R> function, T input){
-        try {
-            return function.apply(input);
         }
         catch (Exception ex){
             throw new Util().new ExceptionWrapper(ex);

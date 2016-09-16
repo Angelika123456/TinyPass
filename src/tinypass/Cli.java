@@ -3,6 +3,7 @@ package tinypass;
 import java.awt.*;
 import java.awt.datatransfer.*;
 import java.nio.file.*;
+import java.security.SecureRandom;
 import java.util.*;
 import java.io.*;
 import java.util.List;
@@ -82,7 +83,7 @@ public class Cli {
             return;
         }
 
-        out.println("Entry is added.");
+        out.println("Database successfully updated.");
     }
 
     /**
@@ -104,18 +105,16 @@ public class Cli {
     /**
      * Add an password entry to the existing database.
      */
-    public static void addEntry() {
+    public static void addEntry(String name) {
+        List<String> data = readData();
+
+        if (nameExists(data, name)) {
+            out.print("\"" + name + "\" already exists.");
+            return;
+        }
+
         char[] masterPassword = checkPassword();
         if (masterPassword == null) return;
-
-        List<String> data = readData();
-        out.print("Enter a unique name: ");
-        String name = console().readLine();
-
-        while (nameExists(data, name)) {
-            out.print("Name already exists. Enter another one: ");
-            name = console().readLine();
-        }
 
         out.print("Enter description: ");
         String description = console().readLine();
@@ -167,29 +166,18 @@ public class Cli {
             toStringBase64(r.salt), toStringBase64(r.iv), toStringBase64(r.ciphertext));
     }
 
-    /**
-     * Asks the user to enter a valid unique name.
-     */
-    private static String getName(Map<String, String> entries){
-        out.print("Enter the unique name: ");
-        String name = console().readLine();
-
-        while (!entries.containsKey(name)) {
-            out.print("Name does not exist. Please enter again: ");
-            name = console().readLine();
-        }
-
-        return name;
-    }
-
-    public static void getEntry(boolean showDescription) {
-        char[] masterPassword = checkPassword();
-        if (masterPassword == null) return;
-
+    public static void getEntry(String name, boolean showDescription) {
         List<String> rawData = readData();
         if (rawData == null) return;
         Map<String, String> data = nameLookup(rawData);
-        String name = getName(data);
+
+        if (!data.containsKey(name)) {
+            out.print("\"" + name + "\" does not exist.");
+            return;
+        }
+
+        char[] masterPassword = checkPassword();
+        if (masterPassword == null) return;
 
         String[] split = data.get(name).split(Pattern.quote("|"));
         byte[][] items = Stream.of(split).map(s -> decodeBase64(s)).toArray(byte[][]::new);
@@ -254,19 +242,57 @@ public class Cli {
         return null;
     }
 
-    public static void removeEntry(){
-        char[] masterPassword = checkPassword();
-        if (masterPassword == null) return;
-
+    public static void removeEntry(String name){
         List<String> rawData = readData();
         if (rawData == null) return;
         Map<String, String> data = nameLookup(rawData);
-        String name = getName(data);
+
+        if (!data.containsKey(name)) {
+            out.print("\"" + name + "\" does not exist.");
+            return;
+        }
+
+        char[] masterPassword = checkPassword();
+        if (masterPassword == null) return;
 
         data.remove(name);
         List<String> contents = new ArrayList<>();
         contents.add(rawData.get(0));
         contents.addAll(data.values());
         saveDatabase(String.join("\n",contents));
+    }
+
+    public static void findEntry(String keyword){
+        List<String> rawData = readData();
+        if (rawData == null) return;
+        Map<String, String> data = nameLookup(rawData);
+        List<String> matches = data
+            .keySet()
+            .stream()
+            .filter(s -> s.contains(keyword))
+            .collect(Collectors.toList());
+
+        if(matches.size() == 0) {
+            out.println("No match is found.");
+        }else {
+            matches.forEach(s -> out.println(s));
+        }
+    }
+
+    public static void generate(int length){
+        if(length <= 0){
+            out.println("Invalid length.");
+            return;
+        }
+
+        char[] array = new char[length];
+        Random rd = new SecureRandom();
+
+        for (int i=0; i<length; i++){
+            // Allowed char: 33 to 126
+            array[i] = (char)(rd.nextInt(94) + 33);
+        }
+
+        copyToClipboard(new String(array));
     }
 }
