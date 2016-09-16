@@ -119,8 +119,8 @@ public class Cli {
         char[] password = console().readPassword();
 
         try {
-            EncryptResult desResult = Encryption.encrypt(password, description);
-            EncryptResult passResult = Encryption.encrypt(password, password.toString());
+            EncryptResult desResult = Encryption.encrypt(masterPassword, description);
+            EncryptResult passResult = Encryption.encrypt(masterPassword, new String(password));
 
             addEntry(data, desResult, passResult, name);
             saveDatabase(String.join("\n", data));
@@ -149,8 +149,7 @@ public class Cli {
     }
 
     /**
-     * Reads the password database from file, and add a password entry to the document.
-     * Returns the lines of document.
+     * Add a password entry to the document.
      */
     private static void addEntry(List<String> data, EncryptResult desResult,
                                  EncryptResult passResult, String name) {
@@ -190,7 +189,6 @@ public class Cli {
             pass = Encryption.decrypt(passKey, items[5], items[6]);
         } catch (Exception e) {
             out.println("Failed to decrypt the entry.");
-            e.printStackTrace();//TODO:
             return;
         } finally {
             Arrays.fill(masterPassword, '\0');
@@ -206,6 +204,7 @@ public class Cli {
     private static void copyToClipboard(String text) {
         StringSelection selection = new StringSelection(text);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        out.println("Password copied to clipboard. Will clear in 15 seconds.");
         clipboard.setContents(selection, selection);
 
         StringSelection empty = new StringSelection("");
