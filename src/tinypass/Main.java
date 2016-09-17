@@ -40,7 +40,7 @@ public class Main {
             }else if(args[0].equals("rm")){
                 removeEntry(args[1]); return;
             }else if(args[0].equals("gen")){
-                generate(Integer.getInteger(args[1])); return;
+                generate(Integer.parseInt(args[1])); return;
             }
         } else if(len ==3){
             if(args[0].equals("get") && args[1].equals("-d")){

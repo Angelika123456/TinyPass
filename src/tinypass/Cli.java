@@ -281,6 +281,7 @@ public class Cli {
             .keySet()
             .stream()
             .filter(s -> s.contains(keyword))
+            .sorted()
             .collect(Collectors.toList());
 
         if(matches.size() == 0) {
