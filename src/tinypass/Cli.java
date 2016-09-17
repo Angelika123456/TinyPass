@@ -306,4 +306,16 @@ public class Cli {
 
         copyToClipboard(new String(array));
     }
+
+    public static void showHelp(){
+        out.println("commands:\n" +
+            "init                 Initialize a password database\n" +
+            "add arg-name         Add an entry with the specified name\n" +
+            "get [-d] arg-name    Get the entry with the specified name,\n" +
+            "                     -d: show description of the entry\n" +
+            "rm arg-name          Remove the entry with the specified name\n" +
+            "find arg-keyword     Search for entries containing the keyword\n" +
+            "gen [arg-length]     Generates a random password with given length\n" +
+            "help                 Show this help message");
+    }
 }

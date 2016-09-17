@@ -24,27 +24,32 @@ public class Main {
 
         if(len == 1) {
             if(args[0].equals("init")){
-                init();
+                init(); return;
             }else if(args[0].equals("gen")){
-                generate(32);
+                generate(32); return;
+            }else if(args[0].equals("help")){
+                showHelp(); return;
             }
         } else if (len == 2) {
             if(args[0].equals("find")){
-                findEntry(args[1]);
+                findEntry(args[1]); return;
             }else if(args[0].equals("add")){
-                addEntry(args[1]);
+                addEntry(args[1]); return;
             }else if(args[0].equals("get")){
-                getEntry(args[1], false);
+                getEntry(args[1], false); return;
             }else if(args[0].equals("rm")){
-                removeEntry(args[1]);
+                removeEntry(args[1]); return;
             }else if(args[0].equals("gen")){
-                generate(Integer.getInteger(args[1]));
+                generate(Integer.getInteger(args[1])); return;
             }
         } else if(len ==3){
             if(args[0].equals("get") && args[1].equals("-d")){
-                getEntry(args[2], true);
+                getEntry(args[2], true); return;
             }
         }
+
+        out.println("The command is invalid.");
+        showHelp();
     }
 
     private static void setWorkingDir() {
