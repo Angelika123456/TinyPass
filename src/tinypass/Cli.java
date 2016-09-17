@@ -205,20 +205,31 @@ public class Cli {
     private static void copyToClipboard(String text) {
         StringSelection selection = new StringSelection(text);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        out.println("Password copied to clipboard. Will clear in 15 seconds.");
+        out.print("Password copied to clipboard. Will be cleared after 15 seconds, " +
+            "or press enter to clear.");
         clipboard.setContents(selection, selection);
 
-        StringSelection empty = new StringSelection("");
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
                            @Override
                            public void run() {
-                               clipboard.setContents(empty, empty);
-                               timer.cancel();
+                               clearClipboard(clipboard, timer);
+                               out.print("\nPassword cleared.");
+                               System.exit(0);
                            }
                        },
             15000,
             Long.MAX_VALUE);
+
+        console().readLine();
+        clearClipboard(clipboard, timer);
+        out.print("Password cleared.");
+    }
+
+    private static void clearClipboard(Clipboard clipboard, Timer timer) {
+        StringSelection empty = new StringSelection("");
+        clipboard.setContents(empty, empty);
+        timer.cancel();
     }
 
     /**
