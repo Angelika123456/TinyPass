@@ -274,13 +274,15 @@ public class Cli {
     }
 
     public static void findEntry(String keyword){
+        String keywordLower = keyword.toLowerCase();
         List<String> rawData = readData();
         if (rawData == null) return;
         Map<String, String> data = nameLookup(rawData);
         List<String> matches = data
             .keySet()
             .stream()
-            .filter(s -> s.contains(keyword))
+            .map(s -> s.toLowerCase())
+            .filter(s -> s.contains(keywordLower))
             .sorted()
             .collect(Collectors.toList());
 
