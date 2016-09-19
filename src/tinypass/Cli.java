@@ -37,7 +37,7 @@ public class Cli {
         byte[] hash = Encryption.getHash(password, salt);
 
         try {
-            writeToFile(fileName, toStringBase64(salt) + "|" + toStringBase64(hash) + "|0");
+            writeToFile(fileName, toStringBase64(salt) + "|" + toStringBase64(hash));
         } catch (IOException e) {
             out.println(fileWriteErrorMsg);
             return;
@@ -78,47 +78,29 @@ public class Cli {
         try {
             writeToFile(fileName, content);
         } catch (IOException e) {
-            out.println(fileWriteErrorMsg + " " + manualRestoreDataMsg());
+            out.println(fileWriteErrorMsg + " Please delete the file " + fileName +
+                " and rename " + fileName + "_backup to " + fileName + " to restore database.");
+            out.println("Warning: Using the application again before completing the above steps" +
+                " will cause loss of data.");
             return;
         }
 
         out.println("Database successfully updated.");
     }
 
-    private static String manualRestoreDataMsg(){
-        return "Please delete the file " + fileName + " and rename " + fileName +
-                "_backup to " + fileName + " to restore database.";
-    }
-
     /**
      * Read the lines of previously saved password database.
      * Returns null if failed.
      *
-     * The first line is: masterPasswordSalt|masterPasswordHash|entryCount
+     * The first line is: masterPasswordSalt|masterPasswordHash
      * Other lines are: name|desSalt|desIv|desCipherTxt|passSalt|passIv|passCipherTxt
      */
     private static List<String> readData() {
         try {
-            List<String> lines = Files.readAllLines(Paths.get(fileName), UTF_8);
-            if(isValid(lines)) return lines;
-
-            out.println("The database file is corrupt. " + manualRestoreDataMsg());
-            return null;
+            return Files.readAllLines(Paths.get(fileName), UTF_8);
         } catch (Exception ex) {
             out.println("Failed to read database.");
             return null;
-        }
-    }
-
-    /**
-     * Returns whether the database file is corrupt.
-     */
-    private static boolean isValid(List<String> data){
-        try {
-            int count = Integer.parseInt(data.get(0).split(Pattern.quote("|"))[2]);
-            return count == data.size() - 1;
-        } catch (Exception ex) {
-            return false;
         }
     }
 
@@ -180,13 +162,6 @@ public class Cli {
         String line = String.join("|",
             toStringBase64(name), convertToString(desResult), convertToString(passResult));
         data.add(line);
-        updateCounter(data);
-    }
-
-    private static void updateCounter(List<String> data){
-        String[] firstLine = data.get(0).split(Pattern.quote("|"));
-        firstLine[2] = Integer.toString(data.size() - 1);
-        data.set(0, String.join("|", firstLine));
     }
 
     private static String convertToString(EncryptResult r) {
@@ -298,7 +273,6 @@ public class Cli {
         List<String> contents = new ArrayList<>();
         contents.add(rawData.get(0));
         contents.addAll(data.values());
-        updateCounter(contents);
         saveDatabase(String.join("\n",contents));
     }
 
