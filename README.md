@@ -1,10 +1,10 @@
 # TinyPass
 A tiny password manager.
 
-# How to use
+### How to use
 First, install java 8 runtime.
 
-Download and install Java Cryptography Extension. It is required for AES-256 encryption.
+Download and install [Java Cryptography Extension](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html). It is required for AES-256 encryption.
 
 Run the application with command:
 ```
@@ -24,5 +24,3 @@ Run the application with command:
 
 ### License
 Public domain
-
-   [Java Cryptography Extension]:<http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html>
