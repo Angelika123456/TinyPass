@@ -3,6 +3,7 @@ package tinypass;
 import java.security.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
+
 import static java.nio.charset.StandardCharsets.*;
 
 public class Encryption {
@@ -17,7 +18,7 @@ public class Encryption {
     /**
      * Encrypt the message with given password and a random salt.
      */
-    public static EncryptResult encrypt(char[] password, String message) throws Exception{
+    public static EncryptResult encrypt(char[] password, String message) throws Exception {
         byte[] salt = getSalt();
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, getKey(password, salt));
@@ -32,7 +33,7 @@ public class Encryption {
         return result;
     }
 
-    public static String decrypt(SecretKey secret, byte[] iv, byte[] ciphertext) throws Exception{
+    public static String decrypt(SecretKey secret, byte[] iv, byte[] ciphertext) throws Exception {
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(iv));
         return new String(cipher.doFinal(ciphertext), UTF_8);
@@ -48,11 +49,9 @@ public class Encryption {
         try {
             SecretKeyFactory fac = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
             return fac.generateSecret(spec).getEncoded();
-        }
-        catch(Exception ex) {
+        } catch (Exception ex) {
             throw new Util().new ExceptionWrapper(ex);
-        }
-        finally {
+        } finally {
             spec.clearPassword();
         }
     }

@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import tinypass.Encryption.*;
+
 import javax.crypto.SecretKey;
 
 import static java.lang.System.console;
@@ -31,7 +33,7 @@ public class Cli {
         }
 
         char[] password = setPassword(true);
-        if(password == null) return;
+        if (password == null) return;
 
         byte[] salt = Encryption.getSalt();
         byte[] hash = Encryption.getHash(password, salt);
@@ -50,7 +52,7 @@ public class Cli {
      * Prompt the user to enter and verify the password.
      * Returns the password if they match, otherwise returns null.
      */
-    private static char[] setPassword(boolean isMasterPassword){
+    private static char[] setPassword(boolean isMasterPassword) {
         String msg = isMasterPassword ? "master password" : "password";
         out.print("Enter the " + msg + ": ");
         char[] password = console().readPassword();
@@ -91,7 +93,7 @@ public class Cli {
     /**
      * Read the lines of previously saved password database.
      * Returns null if failed.
-     *
+     * <p>
      * The first line is: masterPasswordSalt|masterPasswordHash
      * Other lines are: name|desSalt|desIv|desCipherTxt|passSalt|passIv|passCipherTxt
      */
@@ -123,7 +125,7 @@ public class Cli {
         String description = console().readLine();
 
         char[] password = null;
-        while(password == null) password = setPassword(false);
+        while (password == null) password = setPassword(false);
 
         try {
             EncryptResult desResult = Encryption.encrypt(masterPassword, description);
@@ -256,7 +258,7 @@ public class Cli {
         return null;
     }
 
-    public static void removeEntry(String name){
+    public static void removeEntry(String name) {
         List<String> rawData = readData();
         if (rawData == null) return;
         Map<String, String> data = nameLookup(rawData);
@@ -273,10 +275,10 @@ public class Cli {
         List<String> contents = new ArrayList<>();
         contents.add(rawData.get(0));
         contents.addAll(data.values());
-        saveDatabase(String.join("\n",contents));
+        saveDatabase(String.join("\n", contents));
     }
 
-    public static void findEntry(String keyword){
+    public static void findEntry(String keyword) {
         String keywordLower = keyword.toLowerCase();
         List<String> rawData = readData();
         if (rawData == null) return;
@@ -289,15 +291,15 @@ public class Cli {
             .sorted()
             .collect(Collectors.toList());
 
-        if(matches.size() == 0) {
+        if (matches.size() == 0) {
             out.println("No match is found.");
-        }else {
+        } else {
             matches.forEach(s -> out.println(s));
         }
     }
 
-    public static void generate(int length){
-        if(length <= 0){
+    public static void generate(int length) {
+        if (length <= 0) {
             out.println("Invalid length.");
             return;
         }
@@ -305,15 +307,15 @@ public class Cli {
         char[] array = new char[length];
         Random rd = new SecureRandom();
 
-        for (int i=0; i<length; i++){
+        for (int i = 0; i < length; i++) {
             // Allowed char: 33 to 126
-            array[i] = (char)(rd.nextInt(94) + 33);
+            array[i] = (char) (rd.nextInt(94) + 33);
         }
 
         copyToClipboard(new String(array));
     }
 
-    public static void showHelp(){
+    public static void showHelp() {
         out.println("commands:\n" +
             "init                 Initialize a password database\n" +
             "add arg-name         Add an entry with the specified name\n" +

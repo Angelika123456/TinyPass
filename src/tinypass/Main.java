@@ -22,29 +22,38 @@ public class Main {
     private static void runCommand(String[] args) {
         int len = args.length;
 
-        if(len == 1) {
-            if(args[0].equals("init")){
-                init(); return;
-            }else if(args[0].equals("gen")){
-                generate(32); return;
-            }else if(args[0].equals("help")){
-                showHelp(); return;
+        if (len == 1) {
+            if (args[0].equals("init")) {
+                init();
+                return;
+            } else if (args[0].equals("gen")) {
+                generate(32);
+                return;
+            } else if (args[0].equals("help")) {
+                showHelp();
+                return;
             }
         } else if (len == 2) {
-            if(args[0].equals("find")){
-                findEntry(args[1]); return;
-            }else if(args[0].equals("add")){
-                addEntry(args[1]); return;
-            }else if(args[0].equals("get")){
-                getEntry(args[1], false); return;
-            }else if(args[0].equals("rm")){
-                removeEntry(args[1]); return;
-            }else if(args[0].equals("gen")){
-                generate(Integer.parseInt(args[1])); return;
+            if (args[0].equals("find")) {
+                findEntry(args[1]);
+                return;
+            } else if (args[0].equals("add")) {
+                addEntry(args[1]);
+                return;
+            } else if (args[0].equals("get")) {
+                getEntry(args[1], false);
+                return;
+            } else if (args[0].equals("rm")) {
+                removeEntry(args[1]);
+                return;
+            } else if (args[0].equals("gen")) {
+                generate(Integer.parseInt(args[1]));
+                return;
             }
-        } else if(len ==3){
-            if(args[0].equals("get") && args[1].equals("-d")){
-                getEntry(args[2], true); return;
+        } else if (len == 3) {
+            if (args[0].equals("get") && args[1].equals("-d")) {
+                getEntry(args[2], true);
+                return;
             }
         }
 
